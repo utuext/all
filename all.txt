@@ -1,0 +1,474 @@
+Custom Post Type and taxonomy
+
+function mycustomtype()
+{
+	$labels=array(
+		'name'=>'Products',
+		'singular_name'=>'Products',
+		'add_new'=>'Add new',
+		'add_new_item'=>'Add new Products',
+		'edit_item'=>'Edit Products',
+		'new_item'=>'New Products',
+		'view_item'=>'View Products',
+		'search_item'=>'Search Products',
+		'all_items'=>'Products',
+		'not_found'=>'Products not found',
+		'not_found_in_trash'=>'not found product in trash',
+		'menu_name'=>'Products'
+		);
+
+	 $supports = array(
+        'title',       
+        'editor',      
+        'excerpt',      
+        'author',       
+        'thumbnail',    
+        'comments',     
+        'trackbacks',   
+        'revisions',    
+        'custom-fields' );
+	   
+	$args = array(
+        'labels'              => $labels,
+        'description'         => 'Post type post product', 
+        'supports'            => $supports,
+        'taxonomies'          => array( 'category', 'post_tag' ), 
+        'hierarchical'        => false, 
+        'public'              => true,  
+        'show_ui'             => true,  
+        'show_in_menu'        => true,  
+        'show_in_nav_menus'   => true,  
+        'show_in_admin_bar'   => true,  
+        'menu_position'       => 5,     
+        'menu_icon'           => true,  
+        'can_export'          => true,  
+        'has_archive'         => true,  
+        'exclude_from_search' => false, 
+        'publicly_queryable'  => true,  
+        'capability_type'     => 'post' 
+	
+
+    );
+	register_post_type('product', $args);
+    
+}
+add_action('init', 'mycustomtype');
+
+function customtaxonomy()
+{
+	$labels=array(
+		'name'=>'Products',
+		'singular_name'=>'Products',
+		'add_new'=>'Add new',
+		'add_new_item'=>'Add new Products',
+		'edit_item'=>'Edit Products',
+		'new_item'=>'New Products',
+		'view_item'=>'View Products',
+		'search_item'=>'Search Products',
+		'all_items'=>'Products',
+		'not_found'=>'Products not found',
+		'not_found_in_trash'=>'not found product in trash',
+		'menu_name'=>'Products',
+		'parent_item' => null,
+    		'parent_item_colon' => null	
+	);
+
+	$args=array(
+		'hierarchical' => false,
+    'labels' => $labels,
+    'show_ui' => true,
+    'show_in_rest' => true,
+    'show_admin_column' => true,
+    'update_count_callback' => '_update_post_term_count',
+    'query_var' => true,
+    'rewrite' => array( 'slug' => 'town' )
+		
+
+
+		);
+
+	register_taxonomy('type','product',$args);
+
+
+}
+add_action('init','customtaxonomy');
+
+------------------------------------
+
+Custom plugin
+
+<?php
+/* Plugin Name: Manage Participants
+   Author: unknown
+   Description: This plugin is for managing participants. 
+   slug: add-members-slug*/
+function ManageParticipant(){
+add_menu_page('Participant', 'Participant', 'manage_options', 'members-slug', 'insertparticipant');
+add_submenu_page( 'members-slug', 'ParticipantDetail', 'ParticipantDetail', 'manage_options', 'add-members-slug', 'displaydetailparticipant');
+add_submenu_page( 'members-slug', 'ParticipantReport', 'ParticipantReport', 'manage_options', 'add-members-slug-1', 'report');
+add_submenu_page( 'members-slug', 'Participant Display', 'Participant Display', 'manage_options', 'add-members-slug-3', 'reportdis');
+}
+
+add_action('admin_menu', 'ManageParticipant');
+
+function reportdis()
+{
+    include('displaycount.php');    
+}
+function report()
+{
+    include ("reportcontest.php");
+}
+function insertparticipant()
+{
+	include("insertparticipant.php");
+}
+function displaydetailparticipant()
+{
+	include("displaydetailparticipant.php");
+}
+
+function pluginactivate()
+{      
+  global $wpdb;
+  $sql="create table wp_participantdata (id int(11) AUTO_INCREMENT PRIMARY KEY,pname varchar(50),profilephoto varchar(1000),mobileno varchar(10),email varchar(50),dob date);";
+  $wpdb->query($sql);
+}
+//register activation hook & deactivation hook
+register_activation_hook(__FILE__,'pluginactivate');
+register_deactivation_hook(__FILE__,'pluginactivate');
+?>
+
+
+---------------------------------------------------
+forms.php
+
+<html>
+ <head>
+        <style>
+            input {
+            width: 100%;
+            height:100%;
+            }
+        </style>
+    </head>
+	<body style="text-align:center;">
+		<form method="post" enctype="multipart/form-data" >
+				<center>
+				<h2> Register</h2>
+				<table>
+					<tr>
+					  <td>Name: </td>
+					  <td><input type="text" id="pname" name="pname" placeholder="Enter Name" ></td>					
+					</tr>
+					<tr>
+						<td>Profile Pic:</td>
+						<td><input type="file" id="img" name="img" id="uc3"></td>
+					</tr>
+					<tr>
+					  <td>Contact Number : </td>
+					  <td><input type="text" id="phone" name="phone" placeholder="Enter Mobile No." ></td>
+					</tr>
+					<tr>
+					  <td>Email id: </td>
+					  <td><input type="email" id="mail" name="mail" placeholder="Enter Email id" ></td>
+					</tr>
+					<tr>
+					  <td>D.O.B: </td>
+					  <td><input type="date" id="dob" name="dob"  ></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><input type="submit" value="Submit" name="submit"></td>
+					</tr>
+				</table>
+				</center>
+
+			
+		</form>
+	</body>
+</html>
+<?php
+	if(isset($_POST["submit"]))
+	{
+	
+		$filetmp=$_FILES["img"]["tmp_name"];
+		$filename=$_FILES["img"]["name"];
+		$filetype=$_FILES["img"]["type"];
+		$filepath="images/".$filename;
+		move_uploaded_file($filetmp,$filepath);
+		$Name=$_POST["pname"];
+		$Mobile=$_POST["phone"];
+		$Email=$_POST["mail"];
+		$DOB=$_POST["dob"];
+		global $wpdb;	$sql=$wpdb->insert("wp_participantdata",array("id"=>null,"pname"=>$Name,"profilephoto"=>$filepath,"mobileno"=>$Mobile,"email"=>$Email,"dob"=>$DOB));
+		if($sql==true)
+		{
+			echo "<script>alert('inserted sucessfully Data');</script>";
+		}
+	}
+		
+		
+	}
+?>
+
+-----------------------------------
+display.php
+
+<html>
+<?php
+	global $wpdb;
+	$sql="select * from wp_participantdata";
+	$result=$wpdb->get_results($sql);
+	if(isset($_GET['id']))
+{
+	include("updateparticipant.php");
+}
+	else if(isset($_GET['del']))
+{
+	include("deleteparticipant.php");
+}
+else{
+?>
+<body>
+<center>
+<table border=4>
+<tr>
+<th>Name</th>
+<th>Profile</th>
+<th>Mobile</th>
+<th>Email</th>
+<th>Ddate Of Birth</th>
+<th>Action</th>
+</tr>
+
+<?php 
+
+
+foreach($result as $qry1)
+{
+	$res=$qry1->id; ;
+?>
+<tr>
+<td>
+<?php echo $qry1->pname;?>
+</td>
+<td>
+<img src="<?php echo $qry1->profilephoto;?>" width="200" height="200" alt="food"
+</td>
+<td>
+<?php echo $qry1->mobileno;?>
+</td>
+<td>
+<?php echo $qry1->email;?>
+</td>
+<td>
+<?php echo $qry1->dob;?>
+</td>
+
+</td>
+<td><a href="<?php echo admin_url('admin.php?page=add-members-slug&id='.$res);?>"><font color="blue">UPDATE </font> </a >||
+    <a href="<?php echo admin_url('admin.php?page=add-members-slug&del='.$res);?>"><font color="blue">DELETE</font></a></td>
+</tr>
+<?php } }
+
+
+?>
+</table>
+</center>
+</body>
+</html>
+
+-------------------
+update.php
+
+ <?php
+ $id=$_GET['id'];
+ 
+
+	 
+	global $wpdb;
+	//$sql="select * from wp_participantdata where id= $id";
+	$result=$wpdb->get_results("SELECT * from wp_participantdata WHERE id=$id");
+	foreach($result as $val){
+	$name=$val->pname;
+	$profile=$val->profilephoto;
+	$mobile=$val->mobileno;
+	$email=$val->email;
+	$dob=$val->dob;
+
+        }
+
+?>
+
+<html>
+ <head>
+        <style>
+            input {
+            width: 100%;
+            height:100%;
+            }
+        </style>
+    </head>
+   
+	<body style="text-align:center;">
+		<form method="post" enctype="multipart/form-data" >
+				<center>
+				
+				<table>
+					<tr>
+					  <td>Name: </td>
+					  <td><input type="text" id="pname" name="pname" placeholder="Enter Name" value=<?php echo $name?> ></td>
+					</tr>
+					<tr>
+						<td>Profile Pic:</td>
+						<td><input type="file" id="img" name="img[]" multiple id="uc3" value="<?php echo $profile;?>"></td>
+					</tr>
+					<tr>
+					  <td>Contact Number : </td>
+					  <td><input type="text" id="phone" name="phone" placeholder="Enter Mobile No." value="<?php echo $mobile;?>" ></td>
+					</tr>
+					<tr>
+					  <td>Email id: </td>
+					  <td><input type="email" id="mail" name="mail" placeholder="Enter Email id"  value="<?php echo $email;?>"></td>
+					</tr>
+					<tr>
+					  <td>D.O.B: </td>
+					  <td><input type="date" id="dob" name="dob" value="<?php echo $dob;?>" ></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><input type="submit" value="Update" name="update"></td>
+					</tr>
+				</table>
+				</center>
+
+			
+		</form>
+	</body>
+</html>
+
+<?php
+if(isset($_POST['update']))
+{
+	for($i=0;$i<count($_FILES["img"]["name"]);$i++)
+	{
+		$filetmp=$_FILES["img"]["tmp_name"][$i];
+		$filename=$_FILES["img"]["name"][$i];
+		$filetype=$_FILES["img"]["type"][$i];
+		$filepath="images/".$filename;
+		move_uploaded_file($filetmp,$filepath);
+		global $wbdb;
+		$tablename="wp_participantdata";
+		$name=$_POST["pname"];
+		$img=$filepath;
+		$mobile=$_POST["phone"];
+		$email=$_POST["mail"];
+		$dob=$_POST["dob"];
+		
+		$update=$wpdb->update($tablename,array(pname=>$name,profilephoto=>$img,mobileno=>$mobile,email=>$email,dob=>$dob),array(id=>$id));
+		echo "<script>alert('Do you want to Update?')</script>";
+		echo "<script type='text/javascript'>";
+		echo "window.location.href=<?php echo admin_url('admin.php?page=add-members-slug');?>";
+		echo "</script>";
+		
+	}
+	
+}
+
+
+----------------
+
+delete.php
+<?php
+	global $wpdb;
+    $id=$_GET['del'];
+	//echo $id;
+	
+	$table='wp_participantdata';
+	$wpdb->delete($table,array(id=>$id));
+	echo "<script>alert('Do you want to delete?')</script>";
+	
+	
+	
+?>
+<script type='text/javascript'>
+window.location.href="<?php echo admin_url('admin.php?page=add-members-slug')?>";
+</script>
+
+-----------------
+
+custom_widget.php
+<?php
+class wpb_widget extends WP_Widget {
+
+    function __construct() {
+        parent::__construct(
+// Base ID of your widget
+                'wpb_widget',
+// Widget name will appear in UI
+                __('YummayNHealthy', 'wpb_widget_domain'),
+// Widget description
+                array('description' => __('This widget will show contest and count of paricipants', 'wpb_widget_domain'),)
+        );
+    }
+    //forn-end
+    public function widget($args, $instance) {
+       
+         global $wpdb;
+        $sql="select * from test;";
+        $result=$wpdb->get_results($sql);
+        ?>
+<form>
+    <table border="1">
+        <tr>
+            <th>
+                Contetest
+            </th>
+            <th>
+                Number of Participants
+            </th>
+        </tr>
+        <tr>
+           
+        </tr>
+        <?php
+        foreach ($result as $d)
+        {
+            ?>
+        <tr>
+			<td>
+                <a href="<?php echo admin_url('admin.php?page=member-slug-1&select='.$d->id);?>"><font color="blue">  <?php echo $d->id; ?> </font> </a >
+            </td>
+            <td>
+             <?php echo $d->name; ?>  
+            </td>
+        </tr>
+        <?php }
+        ?>
+    </table>
+</form>
+
+    <?php }
+    //back-end
+    public function form($instance)
+    {
+       
+       
+    }
+}
+function wpb_load_widget() {
+    register_widget( 'wpb_widget' );
+}
+add_action( 'widgets_init', 'wpb_load_widget' );
+?>
+
+write this line on the bottom of the
+theme folder -> tweennighteen->fuctions.php
+
+require_once('customwidget.php');
+
+
+
+
+
